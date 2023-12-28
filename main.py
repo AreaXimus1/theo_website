@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
@@ -12,13 +12,8 @@ import os
 from flask import Flask, flash, request, redirect, url_for
 
 
-UPLOAD_FOLDER = 'data_formatting/raw_data_folder/'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg'}
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -28,6 +23,8 @@ Bootstrap5(app)
 
 # CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy()
 db.init_app(app)
 
@@ -60,10 +57,6 @@ class UploadForm(FlaskForm):
     pass
 
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 @app.route('/', methods=['GET', 'POST'])
 def home():
     result = db.session.execute(db.select(BlogPost))
@@ -72,34 +65,41 @@ def home():
 
 
 
+@app.route('/upload')
+def upload_page():
+    return render_template('upload.html')
+
+@app.route('/process_upload', methods=['POST'])
+def process_upload():
+    iupred_results = request.files['iupredResults']
+    nuclear_scores = request.files['nuclearScores']
+
+    if iupred_results.filename == '' or nuclear_scores.filename == '':
+        return jsonify({'error': 'Please select both files'}), 400
+
+    # Delete existing files with the same names
+    existing_iupred_results_path = os.path.join(app.config['UPLOAD_FOLDER'], 'IUPred_Results.txt')
+    existing_nuclear_scores_path = os.path.join(app.config['UPLOAD_FOLDER'], 'Nuclear_Scores.csv')
+
+    if os.path.exists(existing_iupred_results_path):
+        os.remove(existing_iupred_results_path)
+
+    if os.path.exists(existing_nuclear_scores_path):
+        os.remove(existing_nuclear_scores_path)
+
+    # Save the new files
+    iupred_results.save(os.path.join(app.config['UPLOAD_FOLDER'], 'IUPred_Results.txt'))
+    nuclear_scores.save(os.path.join(app.config['UPLOAD_FOLDER'], 'Nuclear_Scores.csv'))
+
+    return jsonify({'message': 'Files uploaded successfully'})
 
 
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 
 
 
-@app.route("/post/<int:post_id>")
-def show_post(post_id):
-    requested_post = db.get_or_404(BlogPost, post_id)
-    return render_template("post.html", post=requested_post)
-
-
-@app.route("/new-post")
-def add_new_post():
-    return render_template("make-post.html")
-
-
-@app.route('/success', methods = ['POST'])   
-def success():   
-    if request.method == 'POST':   
-        f = request.files['file'] 
-        f.save(f.filename)   
-        return render_template(url_for(home))   
 
 
 

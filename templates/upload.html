@@ -1,34 +1,33 @@
 {% from "bootstrap5/form.html" import render_form %} {% block content %} {%
     include "header.html" %}
     
-    <!-- Page Header -->
-    <header
-      class="masthead"
-      style="background-image: url('../static/assets/img/edit-bg.jpg')"
-    >
-      <div class="container position-relative px-4 px-lg-5">
-        <div class="row gx-4 gx-lg-5 justify-content-center">
-          <div class="col-md-10 col-lg-8 col-xl-7">
-            <div class="page-heading">
-              <h1>Edit Post</h1>
-              <span class="subheading"
-                >You're going to make a great blog post!</span
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>File Upload</title>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
     
-    <main class="mb-4">
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-8 col-md-10 mx-auto">
-            {{ ckeditor.load() }} {{ ckeditor.config(name='body') }} {{
-            render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
-          </div>
-        </div>
-      </div>
-    </main>
+    <div class="container mt-5">
+        <h2 class="mb-4">File Upload</h2>
+        
+        <form action="/process_upload" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="iupredResults">Upload IUPred Results:</label>
+                <input type="file" name="iupredResults" id="iupredResults" class="form-control-file" required>
+            </div>
+            <div class="form-group">
+                <label for="nuclearScores">Upload Nuclear Scores:</label>
+                <input type="file" name="nuclearScores" id="nuclearScores" class="form-control-file" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+    </div>
+    
+    </body>
+    
+    
     {% include "footer.html" %} {% endblock %}
     
