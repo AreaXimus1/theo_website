@@ -91,7 +91,7 @@ def process_upload():
     iupred_results.save(os.path.join(app.config['UPLOAD_FOLDER'], 'IUPred_Results.txt'))
     nuclear_scores.save(os.path.join(app.config['UPLOAD_FOLDER'], 'Nuclear_Scores.csv'))
 
-    return jsonify({'message': 'Files uploaded successfully'})
+    return render_template("index.html")
 
 
 

@@ -1,33 +1,66 @@
-{% from "bootstrap5/form.html" import render_form %} {% block content %} {%
-    include "header.html" %}
-    
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>File Upload</title>
-        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body>
-    
-    <div class="container mt-5">
-        <h2 class="mb-4">File Upload</h2>
-        
-        <form action="/process_upload" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="iupredResults">Upload IUPred Results:</label>
-                <input type="file" name="iupredResults" id="iupredResults" class="form-control-file" required>
-            </div>
-            <div class="form-group">
-                <label for="nuclearScores">Upload Nuclear Scores:</label>
-                <input type="file" name="nuclearScores" id="nuclearScores" class="form-control-file" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Upload</button>
-        </form>
+{% include "header.html" %}
+{% from "bootstrap5/form.html" import render_form %} {% block content %}
+
+
+<header
+    class="masthead"
+    style="background-image: url('../static/assets/img/background_new.jpg')"
+  >
+    <div class="container position-relative px-4 px-lg-5">
+      <div class="row gx-4 gx-lg-5 justify-content-center">
+        <div class="col-md-10 col-lg-8 col-xl-7">
+          <div class="site-heading">
+            <h1>IUPred Stuff</h1>
+            <span class="subheading">Formatting Raw Data into Useful Outputs</span>
+          </div>
+        </div>
+      </div>
     </div>
-    
-    </body>
-    
-    
-    {% include "footer.html" %} {% endblock %}
-    
+  </header>
+
+  <div class="container px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        
+        <div class="post-preview">
+          <a>
+            <h1 class="post-title">
+                Upload files
+            </h1>
+            <h3 class="post-subtitle">
+                Once the files are uploaded, the page will redirect to Home.
+            </h3>
+          </a>
+          <p class="post-meta">
+            Please do not leave the page beforehand.
+          </p>
+        </div>       
+
+        <div class="post-preview">
+            <form action="/process_upload" method="post" enctype="multipart/form-data">
+                <div class="post-preview">
+                    <div class="form-group">
+                        <h3 class="subheading"><label for="iupredResults">IUPred Results (.txt)</label></h3>
+                        <input type="file" name="iupredResults" id="iupredResults" class="form-control-file" required>
+                    </div>
+
+                    <br><br>
+
+                    <div class="form-group">
+                        <h3 class="subheading"><label for="nuclearScores">Nuclear Scores (.csv)</label></h3>
+                        <input type="file" name="nuclearScores" id="nuclearScores" class="form-control-file" required>
+                    </div>
+                    <br>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+        </div>
+        <br>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+
+{% include "footer.html" %} {% endblock %}
