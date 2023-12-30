@@ -88,8 +88,8 @@ def process_upload():
         os.remove(existing_nuclear_scores_path)
 
     # Save the new files
-    iupred_results.save(os.path.join(app.config['UPLOAD_FOLDER'], 'IUPred_Results.txt'))
-    nuclear_scores.save(os.path.join(app.config['UPLOAD_FOLDER'], 'Nuclear_Scores.csv'))
+    iupred_results.save(os.path.join(app.config['UPLOAD_FOLDER'], 'iupred.txt'))
+    nuclear_scores.save(os.path.join(app.config['UPLOAD_FOLDER'], 'nuclear.csv'))
 
     return render_template("index.html")
 

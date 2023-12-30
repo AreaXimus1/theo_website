@@ -59,7 +59,7 @@ for sim in combined_list:
 
 
 counter = 0
-with open("IUPred3.txt") as raw_data:
+with open("uploads/iupred.txt") as raw_data:
 
 
     iupred_number = 0
@@ -67,7 +67,7 @@ with open("IUPred3.txt") as raw_data:
         if "################" in line:
             iupred_number += 1
 
-with open("IUPred3.txt") as raw_data:
+with open("uploads/iupred.txt") as raw_data:
     for line in raw_data:
         if line.startswith("################"):
 
@@ -83,3 +83,4 @@ with open("IUPred3.txt") as raw_data:
         elif not line.startswith("#"):
             with open("dump_file.txt", mode="a") as dump:
                 dump.write(line)
+

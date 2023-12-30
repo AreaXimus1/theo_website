@@ -1,26 +1,39 @@
 {% include "header.html" %}
 
-<!-- Page Header-->
-<header
-  class="masthead"
-  style="background-image: url('../static/assets/img/background_new.jpg')"
->
-  <div class="container position-relative px-4 px-lg-5">
-    <div class="row gx-4 gx-lg-5 justify-content-center">
-      <div class="col-md-10 col-lg-8 col-xl-7">
-        <div class="site-heading">
-          <h1>IUPred Stuff</h1>
-          <span class="subheading">Formatting Raw Data into Useful Outputs</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</header>
 <!-- Main Content-->
 
 <div class="container px-4 px-lg-5">
   <div class="row gx-4 gx-lg-5 justify-content-center">
     <div class="col-md-10 col-lg-8 col-xl-7">
+
+      <br><br>
+
+      <h2>How to use</h2>
+      
+      <p class="lead">1. Convert your .results file to a .txt file.</p>
+      <p>On a PC, right click it and 'Open with' Notepad. Click 'Save As' and make sure .txt is selected in the dropdown menu.</p>
+      <p>On a Mac, right click and 'Open with' TextEdit. Press 'Command ⌘ Shift ⇧ S' to duplicate it and press Save, making sure to click the button 'If no extension provided, use ".txt."'.</p>
+      <br>
+
+      <p class="lead">2. Go to Upload Files and upload both the IUPred .txt file and the nuclear score .csv file.</p>
+      <p>Please do not do edit the files from their raw state.</p>
+      <p>Once this is done, you will be automatically redirected to this page.</p>
+      <a href="{{ url_for('upload_page') }}">
+        <div class="d-grid gap-2">
+          <button class="btn btn-lg btn-primary" type="button">Upload Files</button>
+        </div>
+      </a>
+      <br><br>
+
+      <p class="lead">3. Press the button below to initiate file conversion.</p>
+      <p>This will take the .txt and .csv files and convert them into usable data. Depending on your computing power, it may take more or less time.</p>
+      <a href="#">
+        <div class="d-grid gap-2">
+          <button class="btn btn-lg btn-primary" type="button" href="{{ url_for('upload_page') }}">Initiate File Conversion</button>
+        </div>
+     </a>  
+      <br><br>
+
 
       <div class="post-preview">
         <a href="{{ url_for('upload_page') }}">
