@@ -8,8 +8,13 @@ from flask_ckeditor import CKEditor, CKEditorField
 from werkzeug.utils import secure_filename
 from datetime import date
 import os
+import shutil
 
-from flask import Flask, flash, request, redirect, url_for
+from initial_processing import raw_processing
+
+DATA_FOLDER = 'data'
+UPLOAD_FOLDER = 'uploads'
+
 
 
 app = Flask(__name__)
@@ -20,13 +25,12 @@ Bootstrap5(app)
 
 
 
-
 # CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
-UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy()
 db.init_app(app)
+
 
 # CONFIGURE TABLE
 class BlogPost(db.Model):
@@ -43,26 +47,16 @@ with app.app_context():
     db.create_all()
 
 
-##WTForm
-class CreatePostForm(FlaskForm):
-    title = StringField("Blog Post Title", validators=[DataRequired()])
-    subtitle = StringField("Subtitle", validators=[DataRequired()])
-    author = StringField("Your Name", validators=[DataRequired()])
-    img_url = StringField("Blog Image URL", validators=[DataRequired(), URL()])
-    body = CKEditorField("Blog Content", validators=[DataRequired()])
-    submit = SubmitField("Submit Post")
-
-
-class UploadForm(FlaskForm):
-    pass
-
-
 @app.route('/', methods=['GET', 'POST'])
 def home():
     result = db.session.execute(db.select(BlogPost))
     posts = result.scalars().all()
     return render_template("index.html", all_posts=posts)
 
+
+@app.route('/how-to-use/', methods=['GET','POST'])
+def how_to_use():
+    return render_template("use_instructions.html")
 
 
 @app.route('/upload')
@@ -78,51 +72,21 @@ def process_upload():
         return jsonify({'error': 'Please select both files'}), 400
 
     # Delete existing files with the same names
-    existing_iupred_results_path = os.path.join(app.config['UPLOAD_FOLDER'], 'IUPred_Results.txt')
-    existing_nuclear_scores_path = os.path.join(app.config['UPLOAD_FOLDER'], 'Nuclear_Scores.csv')
-
-    if os.path.exists(existing_iupred_results_path):
-        os.remove(existing_iupred_results_path)
-
-    if os.path.exists(existing_nuclear_scores_path):
-        os.remove(existing_nuclear_scores_path)
+    try:
+       shutil.rmtree(UPLOAD_FOLDER)
+    except FileNotFoundError:
+        pass
+    os.mkdir(UPLOAD_FOLDER)
 
     # Save the new files
     iupred_results.save(os.path.join(app.config['UPLOAD_FOLDER'], 'iupred.txt'))
     nuclear_scores.save(os.path.join(app.config['UPLOAD_FOLDER'], 'nuclear.csv'))
 
+    # Process iupred.txt and nuclear.csv
+    raw_processing(DATA_FOLDER, UPLOAD_FOLDER)
+
     return render_template("index.html")
 
-
-
-
-
-
-
-
-
-
-
-
-@app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
-def edit_post(post_id):
-    post = db.get_or_404(BlogPost, post_id)
-    edit_form = CreatePostForm(
-        title=post.title,
-        subtitle=post.subtitle,
-        img_url=post.img_url,
-        author=post.author,
-        body=post.body
-    )
-    if edit_form.validate_on_submit():
-        post.title = edit_form.title.data
-        post.subtitle = edit_form.subtitle.data
-        post.img_url = edit_form.img_url.data
-        post.author = edit_form.author.data
-        post.body = edit_form.body.data
-        db.session.commit()
-        return redirect(url_for("show_post", post_id=post.id))
-    return render_template("make-post.html", form=edit_form, is_edit=True)
 
 
 @app.route("/delete/<int:post_id>")

@@ -1,0 +1,35 @@
+{% include "header.html" %}
+
+<div class="container px-4 px-lg-5">
+  <div class="row gx-4 gx-lg-5 justify-content-center">
+    <div class="col-md-10 col-lg-8 col-xl-7">
+
+        <br><br>
+
+        <h1>How to use</h1>
+
+        <h4>1. Upload both IUPred .txt/.results and the nuclear score .csv at Upload Files.</h4>
+        <p class="lead">Please do not do edit the files from their raw state.</p>
+        <p class="lead">Once this is done, you will be automatically redirected to this page.</p>
+        <a href="{{ url_for('upload_page') }}">
+            <div class="d-grid gap-2">
+                <button class="btn btn-lg btn-primary" type="button">Upload Files</button>
+            </div>
+        </a>
+        <br><br>
+
+        <h4>2. Press the button below to initiate file conversion</h4>
+        <p class="lead">This will take the .txt and .csv files and convert them into usable data. Depending on your computing power, it may take more or less time.</p>
+        <p class="text-danger">You must have uploaded the .result and .csv files first.</p>
+        <a href="#">
+            <div class="d-grid gap-2">
+                <button class="btn btn-lg btn-primary" type="button" href="{{ url_for('upload_page') }}">Initiate File Conversion</button>
+            </div>
+        </a>    
+        <br><br>
+
+    </div>
+  </div>
+</div>
+
+{% include "footer.html" %}

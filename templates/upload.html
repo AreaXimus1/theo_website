@@ -1,49 +1,45 @@
 {% include "header.html" %}
 {% from "bootstrap5/form.html" import render_form %} {% block content %}
 
-  <div class="container px-4 px-lg-5">
-    <div class="row gx-4 gx-lg-5 justify-content-center">
-      <div class="col-md-10 col-lg-8 col-xl-7">
-        
-        <div class="post-preview">
-          <a>
-            <h1 class="post-title">
-                Upload files
-            </h1>
-            <h3 class="post-subtitle">
-                Once the files are uploaded, the page will redirect to Home.
-            </h3>
-          </a>
-          <p class="post-meta">
-            Please do not leave the page beforehand.
-          </p>
-        </div>       
+<div class="container px-4 px-lg-5">
+  <div class="row gx-4 gx-lg-5 justify-content-center">
+    <div class="col-md-10 col-lg-8 col-xl-7">
 
-        <div class="post-preview">
-            <form action="/process_upload" method="post" enctype="multipart/form-data">
-                <div class="post-preview">
-                    <div class="form-group">
-                        <h3 class="subheading"><label for="iupredResults">IUPred Results (.txt)</label></h3>
-                        <input type="file" name="iupredResults" id="iupredResults" class="form-control-file" required>
-                    </div>
+    <div class="post-preview">
+      <br><br>
+      <h1 class="post-title">Upload files</h1>
 
-                    <br><br>
+      <p class="lead">This page uploads the files, and then converts them to a form usable in python. </p>
 
-                    <div class="form-group">
-                        <h3 class="subheading"><label for="nuclearScores">Nuclear Scores (.csv)</label></h3>
-                        <input type="file" name="nuclearScores" id="nuclearScores" class="form-control-file" required>
-                    </div>
-                    <br>
-                    <button type="submit" class="btn btn-primary">Upload</button>
-                </div>
-            </form>
+      <p>Once this is done, you will be redirected to the home page.<br>It could take anywhere between a few seconds and 1 minute, depending on processing power. A 2020 Macbook Air M1 takes around 10 seconds.</p>
+      <p class="text-danger">Please do not leave the page before it is done.</p>
+
+      <p>If you have previously uploaded files, they will be deleted upon uploading new ones.</p>
+    </div>       
+
+
+
+    <div class="post-preview">
+      <form action="/process_upload" method="post" enctype="multipart/form-data">
+
+        <div class="form-group">
+          <label for="iupredResults" class="form-label mt-4">IUPred Results (.txt or .result)</label>
+          <input class="form-control" type="file" name="iupredResults" id="iupredResults" required>
         </div>
-        <br>
-      </div>
+
+        <div class="form-group">
+          <label for="nuclearScores" class="form-label mt-4">Nuclear Scores (.csv)</label>
+          <input class="form-control" type="file" name="nuclearScores" id="nuclearScores" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-4">Upload</button>
+
+      </form>
+    </div>
+    <br>
     </div>
   </div>
-
-</body>
+</div>
 
 
 {% include "footer.html" %} {% endblock %}
