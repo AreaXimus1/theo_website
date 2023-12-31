@@ -115,15 +115,6 @@ def count_letters(string, letters_to_count):
     return sorted_letter_counts
 
 
-# FROM HERE IS WHAT FINDS THE RESULTS
-
-chain_results = open("final_results/results_with_chains.txt", mode="a")
-no_chain = open("final_results/results_with_no_chain.txt", mode="a")
-combined = open("final_results/final_files.txt", mode="a")
-with open("final_results/results_json.json", "a") as f:
-    f.write("[")
-with open("final_results/results_json_chain.json", "a") as f:
-    f.write("[")
 with open("final_results/results_to_csv.json", "a") as f:
     f.write("[")
 
@@ -174,7 +165,7 @@ for file in os.listdir(directory):
     region_mean_jsons = []
     number_regions = len(pr)
     number_merged = number_before_merging - number_regions
-    # print(pr)
+
 
     '''GETTING THE AMINO ACIDS BETWEEN THE START OF THE SEQUENCE AND THE END OF IT.'''
     identifier_sims_found = []
@@ -322,10 +313,7 @@ for file in os.listdir(directory):
             f"IUPRED mean: {region_means}\n"
             f"SIMs found: {identifier_sims_found_dictionary_list}\n\n"
         )
-        chain_results.write(final_entry)
-        with open("final_results/results_json_chain.json", "a", encoding="utf-8") as f:
-            json.dump(final_json, f)
-            f.write(",")
+
 
     else:
         final_entry = f"Identifier: {title}\nNumber of regions: 0\n\n"
@@ -333,18 +321,11 @@ for file in os.listdir(directory):
             "identifier": title,
             "number_regions": 0
         }
-        no_chain.write(final_entry)
-    combined.write(final_entry)
 
-    with open("final_results/results_json.json", "a", encoding="utf-8") as f:
-        json.dump(final_json, f)
-        f.write(",")
 
-with open("final_results/results_json.json", "a") as f:
-    f.write("]")
-chain_results.close()
-with open("final_results/results_json_chain.json", "a") as f:
-    f.write("]")
+
+
+
 with open("final_results/results_to_csv.json", "a") as f:
     f.write("]")
 
