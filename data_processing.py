@@ -2,60 +2,11 @@ import itertools
 import json
 import pandas as pd
 import os
+import csv
+import json
+import shutil
 
-IN_A_ROW_MIN = 30
-MERGE_IF_CLOSER_THAN = 10
-LOOK_FOR_ABOVE = 0.4
-
-ALPHABET = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
-ILV = ['I', 'L', 'V']
-ILVM = ['I', 'L', 'V', 'M']
-ILVMF = ['I', 'L', 'V', 'M', 'F']
-DE = ['D', 'E']
-VI = ['V', 'I']
-PLVIMFY = ['P', 'L', 'V', 'I', 'M', 'F', 'Y']
-PLVIM = ['P', 'L', 'V', 'I', 'M']
-DES = ['D', 'E', 'S']
-EDSTP = ['E', 'D', 'S', 'T', 'P']
-
-type_1 = list(itertools.product(
-    ILV, ILV, ALPHABET, ILV
-))
-type_2 = list(itertools.product(
-    ILV, ALPHABET, ILV, ILV
-))
-type_3 = list(itertools.product(
-    ILV, ILV, ILV, ILV
-))
-type_4 = list(itertools.product(
-    ALPHABET, ILV, ILV, ILV
-))
-type_5 = list(itertools.product(
-    ILV, DE, ILV, DE, ILV
-))
-type_alpha = list(itertools.product(
-    VI, ALPHABET, VI, VI
-))
-type_beta = list(itertools.product(
-    VI, ALPHABET, VI, ILV
-))
-type_a = list(itertools.product(
-    PLVIM, ILVM, ALPHABET, DES, DES, DES
-))
-type_b = list(itertools.product(
-    PLVIMFY, ILVM, "D", "L", "T"
-))
-type_r = list(itertools.product(
-    DES, DES, DES, ILVM, ALPHABET, ILVMF, ILVMF
-))
-combined_list = type_1 + type_2 + type_3 + type_4 + type_5 + type_alpha + type_beta + type_a + type_b + type_r
-complete_sim_list = []
-for sim in combined_list:
-    str_ = ''
-    for item in sim:
-        str_ = str_ + item
-    complete_sim_list.append(str_)
-
+# Turns json_to_csv.json to a csv.
 
 def merge_tuples(list_):
     merged_list = []
@@ -114,220 +65,277 @@ def count_letters(string, letters_to_count):
 
     return sorted_letter_counts
 
+IN_A_ROW_MIN = 30
+MERGE_IF_CLOSER_THAN = 10
+LOOK_FOR_ABOVE = 0.4
 
-with open("final_results/results_to_csv.json", "a") as f:
-    f.write("[")
+ALPHABET = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
+ILV = ['I', 'L', 'V']
+ILVM = ['I', 'L', 'V', 'M']
+ILVMF = ['I', 'L', 'V', 'M', 'F']
+DE = ['D', 'E']
+VI = ['V', 'I']
+PLVIMFY = ['P', 'L', 'V', 'I', 'M', 'F', 'Y']
+PLVIM = ['P', 'L', 'V', 'I', 'M']
+DES = ['D', 'E', 'S']
+EDSTP = ['E', 'D', 'S', 'T', 'P']
 
-directory = "raw_results_folder"
-
-final_json_to_csv = []
-
-for file in os.listdir(directory):
-    #    print(file.title())
-
-    with open(f"raw_results_folder/{file}") as file1:
-        title = file1.readline()
-    title = title.split("|")[1]
-
-    df = pd.read_csv(
-        f"raw_results_folder/{file}",
-        sep="\t",
-        header=None,
-        names=["#", "AMINO_ACID", "IUPRED_SCORE", "ANCHOR_SCORE"],
-        skiprows=1
-    )
-    # print(df)
-    convert_dict = {
-        "#": int,
-        "AMINO_ACID": str,
-        "IUPRED_SCORE": float,
-        "ANCHOR_SCORE": float,
-    }
-
-    '''
-    The first line below gives a tag of "True" to any IUPRED score over 0.5.
-    The bottom code lines looks through rows with the tag "True" to search for consecutive ones.
-    In the final one labelled "pr", the "30" defines how many in sequence it's looking for.
-
-    Frankly, I don't really know how it works, but it does. I got it from stackoverflow.
-    https://stackoverflow.com/questions/24281936/delimiting-contiguous-regions-with-values-above-a-certain-threshold-in-pandas-da
-    '''
-
-    df["tag"] = df["IUPRED_SCORE"] > LOOK_FOR_ABOVE
-    fst = df.index[df["tag"] & ~ df["tag"].shift(1).fillna(False)]
-    lst = df.index[df["tag"] & ~ df["tag"].shift(-1).fillna(False)]
-    pr = [(i, j) for i, j in zip(fst, lst) if j > i + IN_A_ROW_MIN]
-
-    number_before_merging = len(pr)
-    pr = merge_tuples(pr)
-    regions = []
-    region_means = []
-    region_mean_jsons = []
-    number_regions = len(pr)
-    number_merged = number_before_merging - number_regions
+type_1 = list(itertools.product(
+    ILV, ILV, ALPHABET, ILV
+))
+type_2 = list(itertools.product(
+    ILV, ALPHABET, ILV, ILV
+))
+type_3 = list(itertools.product(
+    ILV, ILV, ILV, ILV
+))
+type_4 = list(itertools.product(
+    ALPHABET, ILV, ILV, ILV
+))
+type_5 = list(itertools.product(
+    ILV, DE, ILV, DE, ILV
+))
+type_alpha = list(itertools.product(
+    VI, ALPHABET, VI, VI
+))
+type_beta = list(itertools.product(
+    VI, ALPHABET, VI, ILV
+))
+type_a = list(itertools.product(
+    PLVIM, ILVM, ALPHABET, DES, DES, DES
+))
+type_b = list(itertools.product(
+    PLVIMFY, ILVM, "D", "L", "T"
+))
+type_r = list(itertools.product(
+    DES, DES, DES, ILVM, ALPHABET, ILVMF, ILVMF
+))
+combined_list = type_1 + type_2 + type_3 + type_4 + type_5 + type_alpha + type_beta + type_a + type_b + type_r
+complete_sim_list = []
+for sim in combined_list:
+    str_ = ''
+    for item in sim:
+        str_ = str_ + item
+    complete_sim_list.append(str_)
 
 
-    '''GETTING THE AMINO ACIDS BETWEEN THE START OF THE SEQUENCE AND THE END OF IT.'''
-    identifier_sims_found = []
-    identifier_sims_found_dictionary_list = []
-    json_to_csv_list = []
-    for amino_acid_location in pr:
-        aa_chain = []
-        for n in range(amino_acid_location[0], amino_acid_location[1] + 1):
-            row = df.iloc[n]
-            amino_acid = row.iloc[1]
-            aa_chain.append(amino_acid)
-            number = row.iloc[0]
-        amino_acid = ''.join(aa_chain)
+def iupred_to_csv(DATA_FOLDER):
 
-        '''FINDING OUT IF THERE ARE ANY POTENTIAL SIMS IN CHAIN'''
-        sim_dict_list = []
-        sim_occurrences = find_occurrences(amino_acid, substrings=complete_sim_list)
-        for occurrence in sim_occurrences:
-            sim = occurrence[0]
-            sim_location_in_aa = occurrence[1][0] + 1
-            amino_acid_start = amino_acid_location[0]
-            sim_location_in_identifier_start = sim_location_in_aa + amino_acid_start
-            sim_location_in_idenfitier = (sim_location_in_identifier_start, sim_location_in_identifier_start + len(sim))
+    try:
+       shutil.rmtree(f"{DATA_FOLDER}/final_results")
+    except FileNotFoundError:
+        pass
+    os.mkdir(f"{DATA_FOLDER}/final_results")
 
-            sim_tuple = tuple(list(sim))
+    with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "a") as f:
+        f.write("[")
 
-            sim_dict = {
-                "Amino Acid Regions where SIMs present":
-                    f"{sim_location_in_identifier_start}-{sim_location_in_identifier_start + len(sim)}",
-                "Sequences of the SIM": sim,
-            }
-            if sim_tuple in type_alpha:
-                sim_dict["Type of SIM"] = "Type alpha"
-            elif sim_tuple in type_beta:
-                sim_dict["Type of SIM"] = "Type beta"
-            elif sim_tuple in type_1:
-                sim_dict["Type of SIM"] = "Type 1"
-            elif sim_tuple in type_2:
-                sim_dict["Type of SIM"] = "Type 2"
-            elif sim_tuple in type_3:
-                sim_dict["Type of SIM"] = "Type 3"
-            elif sim_tuple in type_4:
-                sim_dict["Type of SIM"] = "Type 4"
-            elif sim_tuple in type_5:
-                sim_dict["Type of SIM"] = "Type 5"
-            elif sim_tuple in type_a:
-                sim_dict["Type of SIM"] = "Type a"
-            elif sim_tuple in type_b:
-                sim_dict["Type of SIM"] = "Type b"
-            elif sim_tuple in type_r:
-                sim_dict["Type of SIM"] = "Type r"
-            else:
-                sim_dict["type"] = "error"
-            identifier_sims_found_dictionary_list.append(sim_dict)
-            '''FINDING COUNTS E/D/S/T/P WITHIN 10 AMINO ACIDS OF A SIM'''
+    directory = f"{DATA_FOLDER}/raw_results_folder"
 
-            search_location_start = sim_location_in_identifier_start - 10
-            if search_location_start < 0:
-                search_location_start = 0
-            search_location_end = sim_location_in_idenfitier[1] + 10
-            if search_location_end > len(df.index):
-                search_location_end = len(df.index)
-            edstp_search = []
-            for n in range(search_location_start, search_location_end):
-                row = df.iloc[n]
-                aa = row.iloc[1]
-                edstp_search.append(aa)
-            edstp_search = ''.join(edstp_search)
-            edstp_tally = count_letters(edstp_search, EDSTP)
+    final_json_to_csv = []
 
-            sim_dict["Amino acid region of SIM"] = edstp_search
+    for file in os.listdir(directory):
+        #    print(file.title())
 
-            d_e = edstp_tally["D"] + edstp_tally["E"]
-            s_t = edstp_tally["S"] + edstp_tally["T"]
-            p_ = edstp_tally["P"]
+        with open(f"{DATA_FOLDER}/raw_results_folder/{file}") as file1:
+            title = file1.readline()
+        title = title.split("|")[1]
 
-            sim_dict["D-E"] = d_e
-            sim_dict["S-T"] = s_t
-            sim_dict["P"] = p_
-            sim_dict_list.append(sim_dict)
-
-        amino_acid_letter_count = count_letters(amino_acid, ALPHABET)
-
-        amino_acid_json = {
-            "amino_acid": amino_acid,
-            "amino_acid_letter_counts": amino_acid_letter_count
-        }
-
-        results = df.iloc[amino_acid_location[0]:amino_acid_location[1], :]
-
-        region = f"AA {amino_acid_location[0] + 1}-{amino_acid_location[1]}"
-        regions.append(region)
-        iupred_mean = round(results["IUPRED_SCORE"].mean(), 4)
-        region_mean = f"{region} = {iupred_mean}"
-        region_mean_json = {
-            "region": region,
-            "region_start": amino_acid_location[0] + 1,
-            "region_end": amino_acid_location[1],
-            "mean": iupred_mean,
-            "amino_acid_chain": amino_acid_json,
-        }
-        json_to_csv = {
-            "Disordered region": f"{amino_acid_location[0] + 1}-{amino_acid_location[1]}",
-            "Mean disorder score": iupred_mean,
-            "Number of Sims": len(sim_dict_list),
-            "SIMs": sim_dict_list
-        }
-        json_to_csv_list.append(json_to_csv)
-
-        region_means.append(region_mean)
-        region_mean_jsons.append(region_mean_json)
-
-    if number_regions > 0:
-        tuple_list = [(tuple_[0] + 1, tuple_[1]) for tuple_ in pr]
-
-        if not identifier_sims_found_dictionary_list:
-            identifier_sims_found_dictionary_list = 0
-
-        final_json = {
-            "identifier": title,
-            "number_regions": number_regions,
-            "sequences_merged": number_merged,
-            "regions": region_mean_jsons,
-            "sims_found": identifier_sims_found_dictionary_list
-        }
-
-        json_to_csv = {
-            "Identifier": title,
-            "Number of disordered regions": number_regions,
-            "Disordered region": {
-                "disordered_region": json_to_csv_list
-            }
-        }
-        with open("final_results/results_to_csv.json", "a") as f:
-            json.dump(json_to_csv, f)
-            f.write(",")
-        final_json_to_csv.append(json_to_csv)
-
-        final_entry = (
-            f"Identifier: {title}\n"
-            f"Number of regions: {number_regions}\n"
-            f"Sequences merged: {number_merged}\n"
-            f"Regions: {regions}\n"
-            f"Regions tuple: {tuple_list}\n"
-            f"IUPRED mean: {region_means}\n"
-            f"SIMs found: {identifier_sims_found_dictionary_list}\n\n"
+        df = pd.read_csv(
+            f"{DATA_FOLDER}/raw_results_folder/{file}",
+            sep="\t",
+            header=None,
+            names=["#", "AMINO_ACID", "IUPRED_SCORE", "ANCHOR_SCORE"],
+            skiprows=1
         )
-
-
-    else:
-        final_entry = f"Identifier: {title}\nNumber of regions: 0\n\n"
-        final_json = {
-            "identifier": title,
-            "number_regions": 0
+        # print(df)
+        convert_dict = {
+            "#": int,
+            "AMINO_ACID": str,
+            "IUPRED_SCORE": float,
+            "ANCHOR_SCORE": float,
         }
 
+        '''
+        The first line below gives a tag of "True" to any IUPRED score over 0.5.
+        The bottom code lines looks through rows with the tag "True" to search for consecutive ones.
+        In the final one labelled "pr", the "30" defines how many in sequence it's looking for.
+
+        Frankly, I don't really know how it works, but it does. I got it from stackoverflow.
+        https://stackoverflow.com/questions/24281936/delimiting-contiguous-regions-with-values-above-a-certain-threshold-in-pandas-da
+        '''
+
+        df["tag"] = df["IUPRED_SCORE"] > LOOK_FOR_ABOVE
+        fst = df.index[df["tag"] & ~ df["tag"].shift(1).fillna(False)]
+        lst = df.index[df["tag"] & ~ df["tag"].shift(-1).fillna(False)]
+        pr = [(i, j) for i, j in zip(fst, lst) if j > i + IN_A_ROW_MIN]
+
+        number_before_merging = len(pr)
+        pr = merge_tuples(pr)
+        regions = []
+        region_means = []
+        region_mean_jsons = []
+        number_regions = len(pr)
+        number_merged = number_before_merging - number_regions
 
 
+        '''GETTING THE AMINO ACIDS BETWEEN THE START OF THE SEQUENCE AND THE END OF IT.'''
+        identifier_sims_found = []
+        identifier_sims_found_dictionary_list = []
+        json_to_csv_list = []
+        for amino_acid_location in pr:
+            aa_chain = []
+            for n in range(amino_acid_location[0], amino_acid_location[1] + 1):
+                row = df.iloc[n]
+                amino_acid = row.iloc[1]
+                aa_chain.append(amino_acid)
+                number = row.iloc[0]
+            amino_acid = ''.join(aa_chain)
+
+            '''FINDING OUT IF THERE ARE ANY POTENTIAL SIMS IN CHAIN'''
+            sim_dict_list = []
+            sim_occurrences = find_occurrences(amino_acid, substrings=complete_sim_list)
+            for occurrence in sim_occurrences:
+                sim = occurrence[0]
+                sim_location_in_aa = occurrence[1][0] + 1
+                amino_acid_start = amino_acid_location[0]
+                sim_location_in_identifier_start = sim_location_in_aa + amino_acid_start
+                sim_location_in_idenfitier = (sim_location_in_identifier_start, sim_location_in_identifier_start + len(sim))
+
+                sim_tuple = tuple(list(sim))
+
+                sim_dict = {
+                    "Amino Acid Regions where SIMs present":
+                        f"{sim_location_in_identifier_start}-{sim_location_in_identifier_start + len(sim)}",
+                    "Sequences of the SIM": sim,
+                }
+                if sim_tuple in type_alpha:
+                    sim_dict["Type of SIM"] = "Type alpha"
+                elif sim_tuple in type_beta:
+                    sim_dict["Type of SIM"] = "Type beta"
+                elif sim_tuple in type_1:
+                    sim_dict["Type of SIM"] = "Type 1"
+                elif sim_tuple in type_2:
+                    sim_dict["Type of SIM"] = "Type 2"
+                elif sim_tuple in type_3:
+                    sim_dict["Type of SIM"] = "Type 3"
+                elif sim_tuple in type_4:
+                    sim_dict["Type of SIM"] = "Type 4"
+                elif sim_tuple in type_5:
+                    sim_dict["Type of SIM"] = "Type 5"
+                elif sim_tuple in type_a:
+                    sim_dict["Type of SIM"] = "Type a"
+                elif sim_tuple in type_b:
+                    sim_dict["Type of SIM"] = "Type b"
+                elif sim_tuple in type_r:
+                    sim_dict["Type of SIM"] = "Type r"
+                else:
+                    sim_dict["type"] = "error"
+                identifier_sims_found_dictionary_list.append(sim_dict)
+                '''FINDING COUNTS E/D/S/T/P WITHIN 10 AMINO ACIDS OF A SIM'''
+
+                search_location_start = sim_location_in_identifier_start - 10
+                if search_location_start < 0:
+                    search_location_start = 0
+                search_location_end = sim_location_in_idenfitier[1] + 10
+                if search_location_end > len(df.index):
+                    search_location_end = len(df.index)
+                edstp_search = []
+                for n in range(search_location_start, search_location_end):
+                    row = df.iloc[n]
+                    aa = row.iloc[1]
+                    edstp_search.append(aa)
+                edstp_search = ''.join(edstp_search)
+                edstp_tally = count_letters(edstp_search, EDSTP)
+
+                sim_dict["Amino acid region of SIM"] = edstp_search
+
+                d_e = edstp_tally["D"] + edstp_tally["E"]
+                s_t = edstp_tally["S"] + edstp_tally["T"]
+                p_ = edstp_tally["P"]
+
+                sim_dict["D-E"] = d_e
+                sim_dict["S-T"] = s_t
+                sim_dict["P"] = p_
+                sim_dict_list.append(sim_dict)
+
+            amino_acid_letter_count = count_letters(amino_acid, ALPHABET)
+
+            amino_acid_json = {
+                "amino_acid": amino_acid,
+                "amino_acid_letter_counts": amino_acid_letter_count
+            }
+
+            results = df.iloc[amino_acid_location[0]:amino_acid_location[1], :]
+
+            region = f"AA {amino_acid_location[0] + 1}-{amino_acid_location[1]}"
+            regions.append(region)
+            iupred_mean = round(results["IUPRED_SCORE"].mean(), 4)
+            region_mean = f"{region} = {iupred_mean}"
+            region_mean_json = {
+                "region": region,
+                "region_start": amino_acid_location[0] + 1,
+                "region_end": amino_acid_location[1],
+                "mean": iupred_mean,
+                "amino_acid_chain": amino_acid_json,
+            }
+            json_to_csv = {
+                "Disordered region": f"{amino_acid_location[0] + 1}-{amino_acid_location[1]}",
+                "Mean disorder score": iupred_mean,
+                "Number of Sims": len(sim_dict_list),
+                "SIMs": sim_dict_list
+            }
+            json_to_csv_list.append(json_to_csv)
+
+            region_means.append(region_mean)
+            region_mean_jsons.append(region_mean_json)
+
+        if number_regions > 0:
+            tuple_list = [(tuple_[0] + 1, tuple_[1]) for tuple_ in pr]
+
+            if not identifier_sims_found_dictionary_list:
+                identifier_sims_found_dictionary_list = 0
+
+            final_json = {
+                "identifier": title,
+                "number_regions": number_regions,
+                "sequences_merged": number_merged,
+                "regions": region_mean_jsons,
+                "sims_found": identifier_sims_found_dictionary_list
+            }
+
+            json_to_csv = {
+                "Identifier": title,
+                "Number of disordered regions": number_regions,
+                "Disordered region": {
+                    "disordered_region": json_to_csv_list
+                }
+            }
+            with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "a") as f:
+                json.dump(json_to_csv, f)
+                f.write(",")
+            final_json_to_csv.append(json_to_csv)
+
+            final_entry = (
+                f"Identifier: {title}\n"
+                f"Number of regions: {number_regions}\n"
+                f"Sequences merged: {number_merged}\n"
+                f"Regions: {regions}\n"
+                f"Regions tuple: {tuple_list}\n"
+                f"IUPRED mean: {region_means}\n"
+                f"SIMs found: {identifier_sims_found_dictionary_list}\n\n"
+            )
 
 
-with open("final_results/results_to_csv.json", "a") as f:
-    f.write("]")
+        else:
+            final_entry = f"Identifier: {title}\nNumber of regions: 0\n\n"
+            final_json = {
+                "identifier": title,
+                "number_regions": 0
+            }
 
-print("DONE!")
-print(final_json_to_csv)
+
+    with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "a") as f:
+        f.write("]")
+
+    json_to_csv(DATA_FOLDER)

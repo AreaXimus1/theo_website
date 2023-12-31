@@ -11,10 +11,11 @@ import os
 import shutil
 
 from initial_processing import raw_processing
+from data_processing import iupred_to_csv
+import json_to_csv
 
 DATA_FOLDER = 'data'
 UPLOAD_FOLDER = 'uploads'
-
 
 
 app = Flask(__name__)
@@ -63,6 +64,7 @@ def how_to_use():
 def upload_page():
     return render_template('upload.html')
 
+
 @app.route('/process_upload', methods=['POST'])
 def process_upload():
     iupred_results = request.files['iupredResults']
@@ -84,9 +86,9 @@ def process_upload():
 
     # Process iupred.txt and nuclear.csv
     raw_processing(DATA_FOLDER, UPLOAD_FOLDER)
+    iupred_to_csv(DATA_FOLDER)
 
     return render_template("index.html")
-
 
 
 @app.route("/delete/<int:post_id>")
