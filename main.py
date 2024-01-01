@@ -2,28 +2,25 @@ from flask import Flask, render_template, redirect, url_for, request, flash, jso
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, URL
-from flask_ckeditor import CKEditor, CKEditorField
+from wtforms import SubmitField, IntegerField, DecimalField
+from wtforms.validators import DataRequired, NumberRange
 from werkzeug.utils import secure_filename
-from datetime import date
 import os
 import shutil
+import pandas as pd
 
-from initial_processing import raw_processing
-from data_processing import iupred_to_csv
-import json_to_csv
+from initial_processing import initial_processing
+from secondary_processing import secondary_processing, tertiary_processing
+
 
 DATA_FOLDER = 'data'
 UPLOAD_FOLDER = 'uploads'
+iupred_number = None
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
-ckeditor = CKEditor(app)
 Bootstrap5(app)
-
-
 
 
 # CONNECT TO DB
@@ -34,14 +31,11 @@ db.init_app(app)
 
 
 # CONFIGURE TABLE
-class BlogPost(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(250), unique=True, nullable=False)
-    subtitle = db.Column(db.String(250), nullable=False)
-    date = db.Column(db.String(250), nullable=False)
-    body = db.Column(db.Text, nullable=False)
-    author = db.Column(db.String(250), nullable=False)
-    img_url = db.Column(db.String(250), nullable=False)
+class ParameterForm(FlaskForm):
+    disorder_score = DecimalField("Disorder Score (0 - 1)", validators=[DataRequired(), NumberRange(min=0, max=1, message="Please give a number between 0 and 1.")])
+    sequence_length = IntegerField("Sequence Length (1 - ∞)", validators=[DataRequired()])
+    merge_closer_than = IntegerField("Merge Sequences if Closer than X (1 - ∞)", validators=[DataRequired()])
+    submit = SubmitField('Submit')
 
 
 with app.app_context():
@@ -50,9 +44,7 @@ with app.app_context():
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    result = db.session.execute(db.select(BlogPost))
-    posts = result.scalars().all()
-    return render_template("index.html", all_posts=posts)
+    return render_template("index.html")
 
 
 @app.route('/how-to-use/', methods=['GET','POST'])
@@ -67,6 +59,7 @@ def upload_page():
 
 @app.route('/process_upload', methods=['POST'])
 def process_upload():
+    global iupred_number
     iupred_results = request.files['iupredResults']
     nuclear_scores = request.files['nuclearScores']
 
@@ -85,21 +78,50 @@ def process_upload():
     nuclear_scores.save(os.path.join(app.config['UPLOAD_FOLDER'], 'nuclear.csv'))
 
     # Process iupred.txt and nuclear.csv
-    raw_processing(DATA_FOLDER, UPLOAD_FOLDER)
-    iupred_to_csv(DATA_FOLDER)
+    iupred_number = initial_processing(DATA_FOLDER, UPLOAD_FOLDER)
+    
 
-    return render_template("index.html")
-
-
-@app.route("/delete/<int:post_id>")
-def delete_post(post_id):
-    post_to_delete = db.get_or_404(BlogPost, post_id)
-    db.session.delete(post_to_delete)
-    db.session.commit()
-    return redirect(url_for('get_all_posts'))
+    return redirect("/process-files")
 
 
-# Code from previous day
+@app.route("/process-files", methods=["GET", "POST"])
+def process_files():
+    form = ParameterForm()
+
+    if form.validate_on_submit():
+        disorder = float(form.disorder_score.data)
+        sequence = int(form.sequence_length.data)
+        merge = int(form.merge_closer_than.data)
+        secondary_processing(DATA_FOLDER, iupred_number, disorder, sequence, merge)
+        tertiary_processing(DATA_FOLDER)
+        return redirect("/")
+
+    return render_template("process_files.html", form=ParameterForm())
+
+
+@app.route("/dataset", methods=["GET", "POST"])
+def dataset():
+    table = pd.read_csv(
+        f"{DATA_FOLDER}/final_results/final_csv.csv",
+        encoding="unicode-escape",
+        usecols=[
+            "Identifier",
+            "Number of disordered regions",
+            "Disordered region",
+            "Disorder score in SIM region",
+            "Number of SIMs",
+            "Amino Acid Regions with SIMs",
+            "SIM Sequences",
+            "Type of SIM",
+            "SIM Amino acid region",
+            "D/E",
+            "S/T",
+            "P"
+            ]
+        )
+    return render_template("dataset.html", data=table.to_html(classes="table table-hover", index=False))
+
+
 @app.route("/about")
 def about():
     return render_template("about.html")

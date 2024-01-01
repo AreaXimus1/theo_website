@@ -5,13 +5,12 @@
   <div class="row gx-4 gx-lg-5 justify-content-center">
     <div class="col-md-10 col-lg-8 col-xl-7">
 
-    <div class="post-preview">
-      <br><br>
+    <div class="container mt-5">
       <h1 class="post-title">Upload files</h1>
 
       <p class="lead">This page uploads the files, and then converts them to a form usable in python. </p>
 
-      <p>Once this is done, you will be redirected to the home page.<br>It could take a few minutes, depending on processing power. A 2020 Macbook Air M1 takes 2-3 minutes.</p>
+      <p>Once this is done, you will be redirected to the Process Files page.<br>It could take a few minutes, depending on processing power. You can check the python console to see the status.</p>
       <p class="text-danger">Please do not leave the page before it is done.</p>
 
       <p>If you have previously uploaded files, they will be deleted upon uploading new ones.</p>
@@ -19,7 +18,7 @@
 
 
 
-    <div class="post-preview">
+    <div class="container mt-5">
       <form action="/process_upload" method="post" enctype="multipart/form-data">
 
         <div class="form-group">
@@ -36,7 +35,8 @@
 
       </form>
     </div>
-    <br>
+
+    <br><br>
     </div>
   </div>
 </div>

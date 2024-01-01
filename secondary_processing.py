@@ -6,9 +6,11 @@ import csv
 import json
 import shutil
 
+from json_to_csv import json_to_csv_processing
+
 # Turns json_to_csv.json to a csv.
 
-def merge_tuples(list_):
+def merge_tuples(list_, MERGE_IF_CLOSER_THAN):
     merged_list = []
 
     if not list_:
@@ -65,9 +67,9 @@ def count_letters(string, letters_to_count):
 
     return sorted_letter_counts
 
-IN_A_ROW_MIN = 30
-MERGE_IF_CLOSER_THAN = 10
-LOOK_FOR_ABOVE = 0.4
+# IN_A_ROW_MIN = 30
+# MERGE_IF_CLOSER_THAN = 10
+# LOOK_FOR_ABOVE = 0.4
 
 ALPHABET = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 ILV = ['I', 'L', 'V']
@@ -119,7 +121,7 @@ for sim in combined_list:
     complete_sim_list.append(str_)
 
 
-def iupred_to_csv(DATA_FOLDER):
+def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MIN, MERGE_IF_CLOSER_THAN):
 
     try:
        shutil.rmtree(f"{DATA_FOLDER}/final_results")
@@ -127,12 +129,11 @@ def iupred_to_csv(DATA_FOLDER):
         pass
     os.mkdir(f"{DATA_FOLDER}/final_results")
 
-    with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "a") as f:
-        f.write("[")
-
     directory = f"{DATA_FOLDER}/raw_results_folder"
 
     final_json_to_csv = []
+
+    count = 0
 
     for file in os.listdir(directory):
         #    print(file.title())
@@ -171,7 +172,7 @@ def iupred_to_csv(DATA_FOLDER):
         pr = [(i, j) for i, j in zip(fst, lst) if j > i + IN_A_ROW_MIN]
 
         number_before_merging = len(pr)
-        pr = merge_tuples(pr)
+        pr = merge_tuples(pr, MERGE_IF_CLOSER_THAN)
         regions = []
         region_means = []
         region_mean_jsons = []
@@ -270,6 +271,7 @@ def iupred_to_csv(DATA_FOLDER):
 
             region = f"AA {amino_acid_location[0] + 1}-{amino_acid_location[1]}"
             regions.append(region)
+
             iupred_mean = round(results["IUPRED_SCORE"].mean(), 4)
             region_mean = f"{region} = {iupred_mean}"
             region_mean_json = {
@@ -289,6 +291,13 @@ def iupred_to_csv(DATA_FOLDER):
 
             region_means.append(region_mean)
             region_mean_jsons.append(region_mean_json)
+
+        count += 1
+        
+        try:
+            print(f"secondary processing... {round((count/iupred_number)*100,1)}%", end="\r")
+        except TypeError:
+            print(f"secondary processing... {count}", end="\r")
 
         if number_regions > 0:
             tuple_list = [(tuple_[0] + 1, tuple_[1]) for tuple_ in pr]
@@ -311,10 +320,14 @@ def iupred_to_csv(DATA_FOLDER):
                     "disordered_region": json_to_csv_list
                 }
             }
-            with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "a") as f:
-                json.dump(json_to_csv, f)
-                f.write(",")
+            # result_to_csv_list.append(json_to_csv)
+            # with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "a") as f:
+            #     json.dump(json_to_csv, f)
+            #     f.write(",")
             final_json_to_csv.append(json_to_csv)
+
+
+
 
             final_entry = (
                 f"Identifier: {title}\n"
@@ -335,7 +348,16 @@ def iupred_to_csv(DATA_FOLDER):
             }
 
 
-    with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "a") as f:
-        f.write("]")
+    with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "w") as f:
+        json.dump(final_json_to_csv, f, indent = 4)
 
-    json_to_csv(DATA_FOLDER)
+    json_to_csv_processing(DATA_FOLDER)
+    print("Done data processing!")
+ 
+# iupred_to_csv("data")
+
+def tertiary_processing(DATA_FOLDER):
+    main_df = pd.read_csv(f"{DATA_FOLDER}/output.csv")
+    additional_df = pd.read_csv(f"{DATA_FOLDER}/nuclear_data.csv")
+    merged_df = pd.merge(main_df, additional_df[["Identifier", "Nucleus"]], on="Identifier", how="left")
+    merged_df.to_csv(f"{DATA_FOLDER}/final_results/final_csv.csv")

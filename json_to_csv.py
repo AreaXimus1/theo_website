@@ -33,24 +33,31 @@ def flatten_json(json_data, identifier):
 
     return result
 
+def json_to_csv_processing(DATA_FOLDER):
+    with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "r") as json_file:
+        json_data = json.load(json_file)
 
-with open("data/final_results/results_to_csv.json", "r") as json_file:
-    json_data = json.load(json_file)
 
+    # Open CSV file for writing with comma delimiter
+    with open(f"{DATA_FOLDER}/output.csv", "w", newline="") as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=",")
 
-# Open CSV file for writing with comma delimiter
-with open("data/output.csv", "w", newline="") as csv_file:
-    csv_writer = csv.writer(csv_file, delimiter=",")
+        csv_writer.writerow([
+            "Identifier",
+            "Number of disordered regions",
+            "Disordered region",
+            "Disorder score in SIM region",
+            "Number of SIMs",
+            "Amino Acid Regions with SIMs",
+            "SIM Sequences",
+            "Type of SIM",
+            "SIM Amino acid region",
+            "D/E",
+            "S/T",
+            "P"
+        ])
 
-    csv_writer.writerow([
-        "Identifier", "Total number of disordered regions", "Disordered region",
-        "Disorder score in the region of the SIM", "Number of SIMs", "Amino Acid Regions where the SIMs are present",
-        "Sequences of the SIM", "Type of SIM", "Amino acid region of the SIM", "D/E", "S/T", "P"
-    ])
-
-    for data in json_data:
-        identifier = data.get("Identifier", "")
-        flattened_data = flatten_json(data, identifier)
-        csv_writer.writerows(flattened_data)
-
-print("Done!")
+        for data in json_data:
+            identifier = data.get("Identifier", "")
+            flattened_data = flatten_json(data, identifier)
+            csv_writer.writerows(flattened_data)
