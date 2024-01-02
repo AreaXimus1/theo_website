@@ -92,15 +92,13 @@ def process_files():
 @app.route("/dataset", methods=["GET", "POST"])
 def dataset():
     # Reads and displays the completed table.
-    table = pd.read_csv(
+    df = pd.read_csv(
         f"{DATA_FOLDER}/final_results/final_csv.csv",
         encoding="unicode-escape",
         usecols=[
             "Identifier",
-            "No. disordered regions",
             "Disordered region",
             "Disorder score",
-            "No. Putative SIMs",
             "SIM Position Site",
             "SIM Sequence",
             "SIM Type",
@@ -111,7 +109,20 @@ def dataset():
             "Nuclear Score"
             ]
         )
-    return render_template("dataset.html", data=table.to_html(classes="table table-hover", index=False, justify="center"))
+    df = df.reindex(columns=[
+            "Identifier",
+            "Disordered region",
+            "Disorder score",
+            "Nuclear Score",
+            "SIM Position Site",
+            "SIM Sequence",
+            "SIM Type",
+            "SIM region sequence",
+            "D/E",
+            "S/T",
+            "P"
+            ])
+    return render_template("dataset.html", data=df.to_html(classes="table table-hover", index=False, justify="center"))
 
 
 

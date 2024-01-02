@@ -210,11 +210,11 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
                 elif sim_tuple in type_b:
                     sim_dict["Type of SIM"] = "Type b"
                 elif sim_tuple in type_alpha:
-                    sim_dict["Type of SIM"] = "Type α"
+                    sim_dict["Type of SIM"] = "Type alpha"
                 elif sim_tuple in type_5:
                     sim_dict["Type of SIM"] = "Type 5"
                 elif sim_tuple in type_beta:
-                    sim_dict["Type of SIM"] = "Type β"
+                    sim_dict["Type of SIM"] = "Type beta"
                 elif sim_tuple in type_1:
                     sim_dict["Type of SIM"] = "Type 1"
                 elif sim_tuple in type_2:
