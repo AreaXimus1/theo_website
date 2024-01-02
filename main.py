@@ -1,14 +1,14 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_bootstrap import Bootstrap5
-from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, IntegerField, DecimalField
 from wtforms.validators import DataRequired, NumberRange
-from werkzeug.utils import secure_filename
 import os
 import shutil
 import pandas as pd
 
+
+# Own python files in directory
 from initial_processing import initial_processing
 from secondary_processing import secondary_processing, tertiary_processing
 
@@ -19,27 +19,15 @@ iupred_number = None
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 Bootstrap5(app)
-
-
-# CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-db = SQLAlchemy()
-db.init_app(app)
 
 
-# CONFIGURE TABLE
 class ParameterForm(FlaskForm):
     disorder_score = DecimalField("Disorder Score (0 - 1)", validators=[DataRequired(), NumberRange(min=0, max=1, message="Please give a number between 0 and 1.")])
     sequence_length = IntegerField("Sequence Length (1 - ∞)", validators=[DataRequired()])
     merge_closer_than = IntegerField("Merge Sequences if Closer than X (1 - ∞)", validators=[DataRequired()])
     submit = SubmitField('Submit')
-
-
-with app.app_context():
-    db.create_all()
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -66,14 +54,14 @@ def process_upload():
     if iupred_results.filename == '' or nuclear_scores.filename == '':
         return jsonify({'error': 'Please select both files'}), 400
 
-    # Delete existing files with the same names
+    # Delete existing files
     try:
        shutil.rmtree(UPLOAD_FOLDER)
     except FileNotFoundError:
         pass
     os.mkdir(UPLOAD_FOLDER)
 
-    # Save the new files
+    # Save new files
     iupred_results.save(os.path.join(app.config['UPLOAD_FOLDER'], 'iupred.txt'))
     nuclear_scores.save(os.path.join(app.config['UPLOAD_FOLDER'], 'nuclear.csv'))
 
@@ -88,6 +76,7 @@ def process_upload():
 def process_files():
     form = ParameterForm()
 
+    # Form for processing parameters.
     if form.validate_on_submit():
         disorder = float(form.disorder_score.data)
         sequence = int(form.sequence_length.data)
@@ -101,6 +90,7 @@ def process_files():
 
 @app.route("/dataset", methods=["GET", "POST"])
 def dataset():
+    # Reads and displays the completed table.
     table = pd.read_csv(
         f"{DATA_FOLDER}/final_results/final_csv.csv",
         encoding="unicode-escape",

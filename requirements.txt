@@ -6,4 +6,3 @@ Flask_WTF==1.2.1
 WTForms==3.0.1
 Werkzeug==3.0.0
 pandas==2.1.4
-tablib==3.5.0 

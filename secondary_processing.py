@@ -2,7 +2,6 @@ import itertools
 import json
 import pandas as pd
 import os
-import csv
 import json
 import shutil
 
@@ -158,7 +157,7 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
         }
 
         '''
-        The first line below gives a tag of "True" to any IUPRED score over 0.5.
+        The first line below gives a tag of "True" to any IUPRED score over x.
         The bottom code lines looks through rows with the tag "True" to search for consecutive ones.
         In the final one labelled "pr", the "30" defines how many in sequence it's looking for.
 
@@ -327,8 +326,6 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
             final_json_to_csv.append(json_to_csv)
 
 
-
-
             final_entry = (
                 f"Identifier: {title}\n"
                 f"Number of regions: {number_regions}\n"
@@ -354,9 +351,10 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
     json_to_csv_processing(DATA_FOLDER)
     print("Done data processing!")
  
-# iupred_to_csv("data")
 
 def tertiary_processing(DATA_FOLDER):
+    # Merging the iupred results and the nuclear csv files
+
     main_df = pd.read_csv(f"{DATA_FOLDER}/output.csv")
     additional_df = pd.read_csv(f"{DATA_FOLDER}/nuclear_data.csv")
     merged_df = pd.merge(main_df, additional_df[["Identifier", "Nucleus"]], on="Identifier", how="left")
