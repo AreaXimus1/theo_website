@@ -148,13 +148,6 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
             names=["#", "AMINO_ACID", "IUPRED_SCORE", "ANCHOR_SCORE"],
             skiprows=1
         )
-        # print(df)
-        convert_dict = {
-            "#": int,
-            "AMINO_ACID": str,
-            "IUPRED_SCORE": float,
-            "ANCHOR_SCORE": float,
-        }
 
         '''
         The first line below gives a tag of "True" to any IUPRED score over x.
@@ -180,7 +173,6 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
 
 
         '''GETTING THE AMINO ACIDS BETWEEN THE START OF THE SEQUENCE AND THE END OF IT.'''
-        identifier_sims_found = []
         identifier_sims_found_dictionary_list = []
         json_to_csv_list = []
         for amino_acid_location in pr:
@@ -195,6 +187,8 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
             '''FINDING OUT IF THERE ARE ANY POTENTIAL SIMS IN CHAIN'''
             sim_dict_list = []
             sim_occurrences = find_occurrences(amino_acid, substrings=complete_sim_list)
+
+
             for occurrence in sim_occurrences:
                 sim = occurrence[0]
                 sim_location_in_aa = occurrence[1][0] + 1
@@ -209,10 +203,18 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
                         f"{sim_location_in_identifier_start}-{sim_location_in_identifier_start + len(sim)}",
                     "Sequences of the SIM": sim,
                 }
-                if sim_tuple in type_alpha:
-                    sim_dict["Type of SIM"] = "Type alpha"
+                if sim_tuple in type_r:
+                    sim_dict["Type of SIM"] = "Type r"
+                elif sim_tuple in type_a:
+                    sim_dict["Type of SIM"] = "Type a"
+                elif sim_tuple in type_b:
+                    sim_dict["Type of SIM"] = "Type b"
+                elif sim_tuple in type_alpha:
+                    sim_dict["Type of SIM"] = "Type α"
+                elif sim_tuple in type_5:
+                    sim_dict["Type of SIM"] = "Type 5"
                 elif sim_tuple in type_beta:
-                    sim_dict["Type of SIM"] = "Type beta"
+                    sim_dict["Type of SIM"] = "Type β"
                 elif sim_tuple in type_1:
                     sim_dict["Type of SIM"] = "Type 1"
                 elif sim_tuple in type_2:
@@ -221,14 +223,8 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
                     sim_dict["Type of SIM"] = "Type 3"
                 elif sim_tuple in type_4:
                     sim_dict["Type of SIM"] = "Type 4"
-                elif sim_tuple in type_5:
-                    sim_dict["Type of SIM"] = "Type 5"
-                elif sim_tuple in type_a:
-                    sim_dict["Type of SIM"] = "Type a"
-                elif sim_tuple in type_b:
-                    sim_dict["Type of SIM"] = "Type b"
-                elif sim_tuple in type_r:
-                    sim_dict["Type of SIM"] = "Type r"
+
+
                 else:
                     sim_dict["type"] = "error"
                 identifier_sims_found_dictionary_list.append(sim_dict)
@@ -257,7 +253,12 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
                 sim_dict["D-E"] = d_e
                 sim_dict["S-T"] = s_t
                 sim_dict["P"] = p_
-                sim_dict_list.append(sim_dict)
+
+                if sim_dict not in sim_dict_list:
+                    sim_dict_list.append(sim_dict)
+                else:
+                    pass
+
 
             amino_acid_letter_count = count_letters(amino_acid, ALPHABET)
 
@@ -280,13 +281,15 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
                 "mean": iupred_mean,
                 "amino_acid_chain": amino_acid_json,
             }
-            json_to_csv = {
-                "Disordered region": f"{amino_acid_location[0] + 1}-{amino_acid_location[1]}",
-                "Mean disorder score": iupred_mean,
-                "Number of Sims": len(sim_dict_list),
-                "SIMs": sim_dict_list
-            }
-            json_to_csv_list.append(json_to_csv)
+
+            if len(sim_dict_list) > 0:
+                json_to_csv = {
+                    "Disordered region": f"{amino_acid_location[0] + 1}-{amino_acid_location[1]}",
+                    "Mean disorder score": iupred_mean,
+                    "Number of Sims": len(sim_dict_list),
+                    "SIMs": sim_dict_list
+                }
+                json_to_csv_list.append(json_to_csv)
 
             region_means.append(region_mean)
             region_mean_jsons.append(region_mean_json)
@@ -354,8 +357,13 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
 
 def tertiary_processing(DATA_FOLDER):
     # Merging the iupred results and the nuclear csv files
+    with open(f"{DATA_FOLDER}/nuclear_data.csv") as f:
+        filedata = f.read()
+    filedata = filedata.replace("Nucleus", "Nuclear Score")
+    with open(f"{DATA_FOLDER}/nuclear_data.csv", "w") as f:
+        f.write(filedata)
 
     main_df = pd.read_csv(f"{DATA_FOLDER}/output.csv")
     additional_df = pd.read_csv(f"{DATA_FOLDER}/nuclear_data.csv")
-    merged_df = pd.merge(main_df, additional_df[["Identifier", "Nucleus"]], on="Identifier", how="left")
+    merged_df = pd.merge(main_df, additional_df[["Identifier", "Nuclear Score"]], on="Identifier", how="left")
     merged_df.to_csv(f"{DATA_FOLDER}/final_results/final_csv.csv")

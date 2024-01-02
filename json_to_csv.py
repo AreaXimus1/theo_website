@@ -44,14 +44,14 @@ def json_to_csv_processing(DATA_FOLDER):
 
         csv_writer.writerow([
             "Identifier",
-            "Number of disordered regions",
+            "No. disordered regions",
             "Disordered region",
-            "Disorder score in SIM region",
-            "Number of SIMs",
-            "Amino Acid Regions with SIMs",
-            "SIM Sequences",
-            "Type of SIM",
-            "SIM Amino acid region",
+            "Disorder score",
+            "No. Putative SIMs",
+            "SIM Position Site",
+            "SIM Sequence",
+            "SIM Type",
+            "SIM region sequence",
             "D/E",
             "S/T",
             "P"

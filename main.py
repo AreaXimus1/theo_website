@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
+from flask import Flask, render_template, redirect, request, jsonify, send_file
 from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, IntegerField, DecimalField
@@ -19,6 +19,7 @@ iupred_number = None
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 Bootstrap5(app)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -83,7 +84,7 @@ def process_files():
         merge = int(form.merge_closer_than.data)
         secondary_processing(DATA_FOLDER, iupred_number, disorder, sequence, merge)
         tertiary_processing(DATA_FOLDER)
-        return redirect("/")
+        return redirect("/dataset")
 
     return render_template("process_files.html", form=ParameterForm())
 
@@ -96,20 +97,28 @@ def dataset():
         encoding="unicode-escape",
         usecols=[
             "Identifier",
-            "Number of disordered regions",
+            "No. disordered regions",
             "Disordered region",
-            "Disorder score in SIM region",
-            "Number of SIMs",
-            "Amino Acid Regions with SIMs",
-            "SIM Sequences",
-            "Type of SIM",
-            "SIM Amino acid region",
+            "Disorder score",
+            "No. Putative SIMs",
+            "SIM Position Site",
+            "SIM Sequence",
+            "SIM Type",
+            "SIM region sequence",
             "D/E",
             "S/T",
-            "P"
+            "P",
+            "Nuclear Score"
             ]
         )
-    return render_template("dataset.html", data=table.to_html(classes="table table-hover", index=False))
+    return render_template("dataset.html", data=table.to_html(classes="table table-hover", index=False, justify="center"))
+
+
+
+@app.route("/download_csv", methods=["POST"])
+def download_csv():
+    file_path = f"{DATA_FOLDER}/final_results/final_csv.csv"
+    return send_file(file_path, as_attachment=True)
 
 
 @app.route("/about")
