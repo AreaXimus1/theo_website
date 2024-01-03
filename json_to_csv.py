@@ -33,21 +33,21 @@ def flatten_json(json_data, identifier):
 
     return result
 
-def json_to_csv_processing(DATA_FOLDER):
-    with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "r") as json_file:
+def json_to_csv_processing():
+    with open("data/final_results/results_to_csv.json", "r") as json_file:
         json_data = json.load(json_file)
 
 
     # Open CSV file for writing with comma delimiter
-    with open(f"{DATA_FOLDER}/output.csv", "w", newline="") as csv_file:
+    with open("data/output.csv", "w", newline="") as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=",")
 
         csv_writer.writerow([
             "Identifier",
-            "No. disordered regions",
+            "Drop1",
             "Disordered region",
             "Disorder score",
-            "No. Putative SIMs",
+            "Drop2",
             "SIM Position Site",
             "SIM Sequence",
             "SIM Type",

@@ -120,15 +120,15 @@ for sim in combined_list:
     complete_sim_list.append(str_)
 
 
-def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MIN, MERGE_IF_CLOSER_THAN):
+def secondary_processing(iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MIN, MERGE_IF_CLOSER_THAN):
 
     try:
-       shutil.rmtree(f"{DATA_FOLDER}/final_results")
+       shutil.rmtree("data/final_results")
     except FileNotFoundError:
         pass
-    os.mkdir(f"{DATA_FOLDER}/final_results")
+    os.mkdir("data/final_results")
 
-    directory = f"{DATA_FOLDER}/raw_results_folder"
+    directory = "data/raw_results_folder"
 
     final_json_to_csv = []
 
@@ -137,17 +137,19 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
     for file in os.listdir(directory):
         #    print(file.title())
 
-        with open(f"{DATA_FOLDER}/raw_results_folder/{file}") as file1:
+        with open(f"data/raw_results_folder/{file}") as file1:
             title = file1.readline()
         title = title.split("|")[1]
 
         df = pd.read_csv(
-            f"{DATA_FOLDER}/raw_results_folder/{file}",
+            f"data/raw_results_folder/{file}",
             sep="\t",
             header=None,
             names=["#", "AMINO_ACID", "IUPRED_SCORE", "ANCHOR_SCORE"],
             skiprows=1
         )
+
+
 
         '''
         The first line below gives a tag of "True" to any IUPRED score over x.
@@ -200,7 +202,7 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
 
                 sim_dict = {
                     "Amino Acid Regions where SIMs present":
-                        f"{sim_location_in_identifier_start}-{sim_location_in_identifier_start + len(sim)}",
+                        f"{sim_location_in_identifier_start}-{sim_location_in_identifier_start + len(sim) - 1}",
                     "Sequences of the SIM": sim,
                 }
                 if sim_tuple in type_r:
@@ -228,6 +230,7 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
                 else:
                     sim_dict["type"] = "error"
                 identifier_sims_found_dictionary_list.append(sim_dict)
+
                 '''FINDING COUNTS E/D/S/T/P WITHIN 10 AMINO ACIDS OF A SIM'''
 
                 search_location_start = sim_location_in_identifier_start - 10
@@ -323,7 +326,7 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
                 }
             }
             # result_to_csv_list.append(json_to_csv)
-            # with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "a") as f:
+            # with open("data/final_results/results_to_csv.json", "a") as f:
             #     json.dump(json_to_csv, f)
             #     f.write(",")
             final_json_to_csv.append(json_to_csv)
@@ -348,27 +351,36 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
             }
 
 
-    with open(f"{DATA_FOLDER}/final_results/results_to_csv.json", "w") as f:
+    with open("data/final_results/results_to_csv.json", "w") as f:
         json.dump(final_json_to_csv, f, indent = 4)
 
-    json_to_csv_processing(DATA_FOLDER)
+    json_to_csv_processing()
     print("Secondary processing complete")
  
 
-def tertiary_processing(DATA_FOLDER, nuclear_score):
+def tertiary_processing(nuclear_score):
     # Merging the iupred results and the nuclear csv files
-    with open(f"{DATA_FOLDER}/nuclear_data.csv") as f:
+    with open("data/nuclear_data.csv") as f:
         filedata = f.read()
     filedata = filedata.replace("Nucleus", "Nuclear Score")
-    with open(f"{DATA_FOLDER}/nuclear_data.csv", "w") as f:
+    with open("data/nuclear_data.csv", "w") as f:
         f.write(filedata)
 
-    main_df = pd.read_csv(f"{DATA_FOLDER}/output.csv")
-    additional_df = pd.read_csv(f"{DATA_FOLDER}/nuclear_data.csv")
+    main_df = pd.read_csv("data/output.csv")
+    main_df = main_df.drop(columns=["Drop1", "Drop2"])
+    additional_df = pd.read_csv("data/nuclear_data.csv")
     df = pd.merge(main_df, additional_df[["Identifier", "Nuclear Score"]], on="Identifier", how="left")
 
     # drop row if nuclear score less than input from Data Processing page
     df = df.drop(df[df["Nuclear Score"] < nuclear_score].index)
 
-    df.to_csv(f"{DATA_FOLDER}/final_results/final_csv.csv")
+    # Creating the long dataset
+    df.to_csv("data/final_results/long_dataset.csv")
+
+    # Creating the short dataset. Finding the count of each identifier and then dropping all duplicate rows. 
+    df = df[["Identifier"]]
+    df['No. Putative SIMs'] = df.groupby('Identifier')['Identifier'].transform('count')
+    df = df.drop_duplicates(subset='Identifier')
+    df.to_csv("data/final_results/short_dataset.csv", index=False)
+
     print("Tertiary processing complete")

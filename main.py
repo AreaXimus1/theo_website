@@ -13,7 +13,6 @@ from initial_processing import initial_processing
 from secondary_processing import secondary_processing, tertiary_processing
 
 
-DATA_FOLDER = 'data'
 UPLOAD_FOLDER = 'uploads'
 iupred_number = None
 
@@ -68,7 +67,7 @@ def process_upload():
     nuclear_scores.save(os.path.join(app.config['UPLOAD_FOLDER'], 'nuclear.csv'))
 
     # Process iupred.txt and nuclear.csv
-    iupred_number = initial_processing(DATA_FOLDER, UPLOAD_FOLDER)
+    iupred_number = initial_processing(UPLOAD_FOLDER)
     
 
     return redirect("/process-files")
@@ -84,53 +83,80 @@ def process_files():
         sequence = int(form.sequence_length.data)
         merge = int(form.merge_closer_than.data)
         nuclear_score = float(form.nuclear_score.data)
-        secondary_processing(DATA_FOLDER, iupred_number, disorder, sequence, merge)
-        tertiary_processing(DATA_FOLDER, nuclear_score)
-        return redirect("/dataset")
+        secondary_processing(iupred_number, disorder, sequence, merge)
+        tertiary_processing(nuclear_score)
+        return redirect("/long-dataset")
 
     return render_template("process_files.html", form=ParameterForm())
 
 
-@app.route("/dataset", methods=["GET", "POST"])
+@app.route("/long-dataset", methods=["GET", "POST"])
 def dataset():
     # Reads and displays the completed table.
-    df = pd.read_csv(
-        f"{DATA_FOLDER}/final_results/final_csv.csv",
-        encoding="unicode-escape",
-        usecols=[
-            "Identifier",
-            "Disordered region",
-            "Disorder score",
-            "SIM Position Site",
-            "SIM Sequence",
-            "SIM Type",
-            "SIM region sequence",
-            "D/E",
-            "S/T",
-            "P",
-            "Nuclear Score"
-            ]
-        )
-    df = df.reindex(columns=[
-            "Identifier",
-            "Disordered region",
-            "Disorder score",
-            "Nuclear Score",
-            "SIM Position Site",
-            "SIM Sequence",
-            "SIM Type",
-            "SIM region sequence",
-            "D/E",
-            "S/T",
-            "P"
-            ])
-    return render_template("dataset.html", data=df.to_html(classes="table table-hover", index=False, justify="center"))
+
+    try:
+        df = pd.read_csv(
+            "data/final_results/long_dataset.csv",
+            encoding="unicode-escape",
+            usecols=[
+                "Identifier",
+                "Disordered region",
+                "Disorder score",
+                "SIM Position Site",
+                "SIM Sequence",
+                "SIM Type",
+                "SIM region sequence",
+                "D/E",
+                "S/T",
+                "P",
+                "Nuclear Score"
+                ]
+            )
+        df = df.reindex(columns=[
+                "Identifier",
+                "Disordered region",
+                "Disorder score",
+                "Nuclear Score",
+                "SIM Position Site",
+                "SIM Sequence",
+                "SIM Type",
+                "SIM region sequence",
+                "D/E",
+                "S/T",
+                "P"
+                ])
+
+        # Create a list of dictionaries to pass to the template
+        data_list = df.to_dict(orient='records')
+        
+        return render_template("long_dataset.html", data=data_list, csv_found=True)
+    except FileNotFoundError:
+        return render_template("long_dataset.html", csv_found=False)
 
 
+@app.route("/download_long_csv", methods=["POST"])
+def download_long_csv():
+    file_path = "data/final_results/long_dataset.csv"
+    return send_file(file_path, as_attachment=True)
 
-@app.route("/download_csv", methods=["POST"])
-def download_csv():
-    file_path = f"{DATA_FOLDER}/final_results/final_csv.csv"
+
+@app.route("/short_dataset", methods=["GET", "POST"])
+def short_dataset():
+    # Reads and displays the completed table.
+    try:
+        df = pd.read_csv(
+            "data/final_results/short_dataset.csv",
+            encoding="unicode-escape",
+            )
+        df = df.sort_values(by=["No. Putative SIMs"], ascending=False)
+        return render_template("short_dataset.html", data=df.to_html(classes="table table-hover", index=False, justify="center"), csv_found=True)
+    except FileNotFoundError:
+        return render_template("short_dataset.html", csv_found=False)
+
+
+@app.route("/download_short_csv", methods=["POST"])
+def download_short_csv():
+    file_path = "data/final_results/short_dataset.csv"
     return send_file(file_path, as_attachment=True)
 
 

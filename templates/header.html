@@ -8,7 +8,7 @@
     />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Clean Blog - Start Bootstrap Theme</title>
+    <title>Finding SIMs</title>
     {% block styles %}
     <!-- Load Bootstrap-Flask CSS here -->
     {{ bootstrap.load_css() }}
@@ -44,7 +44,7 @@
     <!-- Navigation-->
     <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
       <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('home') }}">IUPred Stuff</a>
+        <a class="navbar-brand" href="{{ url_for('home') }}">Finding SIMs</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -62,23 +62,16 @@
               <a class="nav-link" href="{{ url_for('process_files') }}">Process Files</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('dataset') }}">Dataset</a>
+              <a class="nav-link" href="{{ url_for('dataset') }}">Long Dataset</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('short_dataset') }}">Short Dataset</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('how_to_use') }}">How to Use</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">About</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Dropdown</a>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="#">Action</a>
-                <a class="dropdown-item" href="#">Another action</a>
-                <a class="dropdown-item" href="#">Something else here</a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#">Separated link</a>
-              </div>
+              <a class="nav-link" href="{{ url_for('about') }}">About</a>
             </li>
           </ul>
         </div>
