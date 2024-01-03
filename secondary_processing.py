@@ -352,10 +352,10 @@ def secondary_processing(DATA_FOLDER, iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MI
         json.dump(final_json_to_csv, f, indent = 4)
 
     json_to_csv_processing(DATA_FOLDER)
-    print("Done data processing!")
+    print("Secondary processing complete")
  
 
-def tertiary_processing(DATA_FOLDER):
+def tertiary_processing(DATA_FOLDER, nuclear_score):
     # Merging the iupred results and the nuclear csv files
     with open(f"{DATA_FOLDER}/nuclear_data.csv") as f:
         filedata = f.read()
@@ -365,5 +365,10 @@ def tertiary_processing(DATA_FOLDER):
 
     main_df = pd.read_csv(f"{DATA_FOLDER}/output.csv")
     additional_df = pd.read_csv(f"{DATA_FOLDER}/nuclear_data.csv")
-    merged_df = pd.merge(main_df, additional_df[["Identifier", "Nuclear Score"]], on="Identifier", how="left")
-    merged_df.to_csv(f"{DATA_FOLDER}/final_results/final_csv.csv")
+    df = pd.merge(main_df, additional_df[["Identifier", "Nuclear Score"]], on="Identifier", how="left")
+
+    # drop row if nuclear score less than input from Data Processing page
+    df = df.drop(df[df["Nuclear Score"] < nuclear_score].index)
+
+    df.to_csv(f"{DATA_FOLDER}/final_results/final_csv.csv")
+    print("Tertiary processing complete")

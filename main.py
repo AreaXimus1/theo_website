@@ -25,9 +25,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 class ParameterForm(FlaskForm):
-    disorder_score = DecimalField("Disorder Score (0 - 1)", validators=[DataRequired(), NumberRange(min=0, max=1, message="Please give a number between 0 and 1.")])
-    sequence_length = IntegerField("Sequence Length (1 - ∞)", validators=[DataRequired()])
+    disorder_score = DecimalField("Min. Disorder Score (0 - 1)", validators=[DataRequired(), NumberRange(min=0, max=1, message="Please give a number between 0 and 1.")])
+    sequence_length = IntegerField("Min. Sequence Length (1 - ∞)", validators=[DataRequired()])
     merge_closer_than = IntegerField("Merge Sequences if Closer than X (1 - ∞)", validators=[DataRequired()])
+    nuclear_score = DecimalField("Min. Nuclear Score (0 - 1)", validators=[DataRequired(), NumberRange(min=0, max=1, message="Please give a number between 0 and 1.")])
     submit = SubmitField('Submit')
 
 
@@ -82,8 +83,9 @@ def process_files():
         disorder = float(form.disorder_score.data)
         sequence = int(form.sequence_length.data)
         merge = int(form.merge_closer_than.data)
+        nuclear_score = float(form.nuclear_score.data)
         secondary_processing(DATA_FOLDER, iupred_number, disorder, sequence, merge)
-        tertiary_processing(DATA_FOLDER)
+        tertiary_processing(DATA_FOLDER, nuclear_score)
         return redirect("/dataset")
 
     return render_template("process_files.html", form=ParameterForm())
