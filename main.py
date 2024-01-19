@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, request, jsonify, send_file
 from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, IntegerField, DecimalField
+from wtforms import SubmitField, IntegerField, DecimalField, RadioField
 from wtforms.validators import DataRequired, NumberRange
 import os
 import shutil
@@ -28,6 +28,7 @@ class ParameterForm(FlaskForm):
     sequence_length = IntegerField("Min. Sequence Length (1 - ∞)", validators=[DataRequired()])
     merge_closer_than = IntegerField("Merge Sequences if Closer than X (1 - ∞)", validators=[DataRequired()])
     nuclear_score = DecimalField("Min. Nuclear Score (0 - 1)", validators=[DataRequired(), NumberRange(min=0, max=1, message="Please give a number between 0 and 1.")])
+    iupred_or_anchor = RadioField("Search by IUPred or Anchor Score?", choices=["IUPred", "Anchor"], validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 
@@ -83,7 +84,11 @@ def process_files():
         sequence = int(form.sequence_length.data)
         merge = int(form.merge_closer_than.data)
         nuclear_score = float(form.nuclear_score.data)
-        secondary_processing(iupred_number, disorder, sequence, merge)
+        iupred_or_anchor = form.iupred_or_anchor.data
+        print(nuclear_score)
+        print(iupred_or_anchor)
+        print("wah")
+        secondary_processing(iupred_number, disorder, sequence, merge, iupred_or_anchor)
         tertiary_processing(nuclear_score)
         return redirect("/long-dataset")
 

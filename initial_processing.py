@@ -41,9 +41,9 @@ def iupred_processing(UPLOAD_FOLDER):
 def nuclear_processing(UPLOAD_FOLDER):
     df = pd.read_csv(
         f"{UPLOAD_FOLDER}/nuclear.csv",
-        usecols=["Entry ID", "Nucleus"]
+        usecols=["Protein_ID", "Nucleus"]
         )
-    df[["a", "Identifier", "b"]] = df["Entry ID"].str.split("_", n=2, expand=True)
+    df[["a", "Identifier", "b"]] = df["Protein_ID"].str.split("_", n=2, expand=True)
     df = df[["Identifier", "Nucleus"]].copy()
 
     df.to_csv("data/nuclear_data.csv")

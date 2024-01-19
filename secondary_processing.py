@@ -7,6 +7,11 @@ import shutil
 
 from json_to_csv import json_to_csv_processing
 
+
+LOOKING_FOR = "ANCHOR_SCORE"
+# LOOKING_FOR = "IUPRED_SCORE"
+
+
 # Turns json_to_csv.json to a csv.
 
 def merge_tuples(list_, MERGE_IF_CLOSER_THAN):
@@ -119,8 +124,12 @@ for sim in combined_list:
         str_ = str_ + item
     complete_sim_list.append(str_)
 
+def secondary_processing(iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MIN, MERGE_IF_CLOSER_THAN, IUPRED_OR_ANCHOR):
 
-def secondary_processing(iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MIN, MERGE_IF_CLOSER_THAN):
+    if IUPRED_OR_ANCHOR == "IUPred":
+        IUPRED_OR_ANCHOR = "IUPRED_SCORE"
+    else:
+        IUPRED_OR_ANCHOR = "ANCHOR_SCORE"
 
     try:
        shutil.rmtree("data/final_results")
@@ -139,7 +148,11 @@ def secondary_processing(iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MIN, MERGE_IF_C
 
         with open(f"data/raw_results_folder/{file}") as file1:
             title = file1.readline()
-        title = title.split("|")[1]
+        
+        try:
+            title = title.split("|")[1]
+        except IndexError:
+            print(title)
 
         df = pd.read_csv(
             f"data/raw_results_folder/{file}",
@@ -160,7 +173,7 @@ def secondary_processing(iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MIN, MERGE_IF_C
         https://stackoverflow.com/questions/24281936/delimiting-contiguous-regions-with-values-above-a-certain-threshold-in-pandas-da
         '''
 
-        df["tag"] = df["IUPRED_SCORE"] > LOOK_FOR_ABOVE
+        df["tag"] = df[IUPRED_OR_ANCHOR] > LOOK_FOR_ABOVE
         fst = df.index[df["tag"] & ~ df["tag"].shift(1).fillna(False)]
         lst = df.index[df["tag"] & ~ df["tag"].shift(-1).fillna(False)]
         pr = [(i, j) for i, j in zip(fst, lst) if j > i + IN_A_ROW_MIN]
@@ -275,7 +288,7 @@ def secondary_processing(iupred_number, LOOK_FOR_ABOVE, IN_A_ROW_MIN, MERGE_IF_C
             region = f"AA {amino_acid_location[0] + 1}-{amino_acid_location[1]}"
             regions.append(region)
 
-            iupred_mean = round(results["IUPRED_SCORE"].mean(), 4)
+            iupred_mean = round(results[IUPRED_OR_ANCHOR].mean(), 4)
             region_mean = f"{region} = {iupred_mean}"
             region_mean_json = {
                 "region": region,
